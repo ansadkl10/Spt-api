@@ -1,15 +1,18 @@
 from flask import Flask, request, jsonify, send_from_directory
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from youtubesearchpython import VideosSearch
 import yt_dlp
 import os
 
 app = Flask(__name__)
 
+# Replace these with your Spotify developer credentials
+SPOTIFY_CLIENT_ID = '276e935108e34e839fa1f2a4abba8e82'
+SPOTIFY_CLIENT_SECRET = '76d809eaf4444c2190b55ef7814dd243'
+
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-    client_id="276e935108e34e839fa1f2a4abba8e82",
-    client_secret="76d809eaf4444c2190b55ef7814dd243"
+    client_id=SPOTIFY_CLIENT_ID,
+    client_secret=SPOTIFY_CLIENT_SECRET
 ))
 
 @app.route('/api/download', methods=['GET'])
@@ -20,29 +23,28 @@ def download_song():
 
     try:
         track = sp.track(url)
-        name = track['name']
+        song = track['name']
         artist = track['artists'][0]['name']
-        query = f"{name} {artist}"
-
-        result = VideosSearch(query, limit=1).result()
-        yt_link = result['result'][0]['link']
+        query = f"{song} {artist}"
+        search_url = f"ytsearch1:{query}"
 
         os.makedirs("downloads", exist_ok=True)
 
         options = {
             'format': 'bestaudio/best',
-            'outtmpl': f'downloads/{name}.%(ext)s',
+            'outtmpl': f'downloads/{song}.%(ext)s',
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
-            }]
+            }],
+            'quiet': True
         }
 
         with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([yt_link])
+            ydl.download([search_url])
 
-        return jsonify({'status': 'success', 'file': f"/download/{name}.mp3"})
+        return jsonify({'status': 'success', 'file': f"/download/{song}.mp3"})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
