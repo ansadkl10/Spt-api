@@ -8,8 +8,8 @@ import os
 app = Flask(__name__)
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-    client_id="YOUR_SPOTIFY_CLIENT_ID",
-    client_secret="YOUR_SPOTIFY_CLIENT_SECRET"
+    client_id="276e935108e34e839fa1f2a4abba8e82",
+    client_secret="76d809eaf4444c2190b55ef7814dd243"
 ))
 
 @app.route('/api/download', methods=['GET'])
