@@ -1,4 +1,0 @@
-flask
-spotipy
-yt-dlp
-gunicorn
