@@ -6,36 +6,40 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "✅ Spotify Downloader API is working!"
+    return '🔽 This will handle Spotify download logic.'
 
 @app.route('/download', methods=['GET'])
 def download():
     spotify_url = request.args.get('url')
     if not spotify_url:
-        return jsonify({'error': 'Spotify URL is missing'}), 400
+        return jsonify({'error': 'Spotify URL not provided'}), 400
 
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         }
-        data = {'url': spotify_url}
+        session = requests.Session()
+        session.headers.update(headers)
 
-        # Spotidownloader scrap
-        res = requests.post('https://spotidownloader.com/download', headers=headers, data=data)
+        # Step 1: Load site
+        home = session.get("https://spotidownloader.com/en")
+        soup = BeautifulSoup(home.text, "html.parser")
+
+        # Step 2: Submit URL
+        res = session.post(
+            "https://spotidownloader.com/inc/track.php",
+            data={"url": spotify_url},
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+
+        # Step 3: Parse response
         soup = BeautifulSoup(res.text, 'html.parser')
-        link = soup.find('a', {'class': 'download-button'})
+        download_link = soup.find("a", class_="download-button")
 
-        if not link:
-            return jsonify({'error': 'Download link not found'}), 404
+        if not download_link or not download_link.get("href"):
+            return jsonify({"error": "Download link not found"}), 404
 
-        return jsonify({
-            'status': 'success',
-            'spotify_url': spotify_url,
-            'download_url': link['href']
-        })
+        return jsonify({"download": download_link["href"]})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
