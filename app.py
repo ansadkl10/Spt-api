@@ -6,7 +6,6 @@ import os
 
 app = Flask(__name__)
 
-# Replace these with your Spotify developer credentials
 SPOTIFY_CLIENT_ID = '276e935108e34e839fa1f2a4abba8e82'
 SPOTIFY_CLIENT_SECRET = '76d809eaf4444c2190b55ef7814dd243'
 
@@ -23,7 +22,7 @@ def download_song():
 
     try:
         track = sp.track(url)
-        song = track['name']
+        song = track['name'].replace(" ", "_")
         artist = track['artists'][0]['name']
         query = f"{song} {artist}"
         search_url = f"ytsearch1:{query}"
